@@ -14,6 +14,10 @@ app.use(express.urlencoded({ extended: true }));
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Serve static frontend files
+const distPath = path.join(__dirname, '../dist');
+app.use(express.static(distPath));
+
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/streamflix';
 
@@ -38,6 +42,11 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Serve React app for all non-API routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'));
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Server Error:', err);
@@ -48,19 +57,12 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found'
-  });
-});
-
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`API URL: http://localhost:${PORT}/api`);
+  console.log(`Frontend: http://localhost:${PORT}`);
 });
 
 module.exports = app;
