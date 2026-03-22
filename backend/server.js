@@ -8,7 +8,7 @@ const app = express();
 
 // CORS - Allow your frontend domain
 app.use(cors({
-  origin: ['https://streamflix-production-6096.up.railway.app', 'http://localhost:5173'],
+  origin: ['https://streamflix-production-076a.up.railway.app', 'http://localhost:5173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
