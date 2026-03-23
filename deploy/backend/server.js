@@ -2,7 +2,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-const { cleanupOldStreams } = require('./src/utils/streamManager');
 require('dotenv').config();
 
 const app = express();
@@ -15,11 +14,9 @@ app.use(express.urlencoded({ extended: true }));
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Static files for transcoded streams
-app.use('/streams', express.static(path.join(__dirname, 'streams')));
-
-// Cleanup old streams on startup
-cleanupOldStreams();
+// Serve static frontend files in production
+const publicPath = path.join(__dirname, '../public');
+app.use(express.static(publicPath));
 
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/streamflix';
@@ -35,7 +32,6 @@ mongoose.connect(MONGODB_URI)
 app.use('/api/auth', require('./src/routes/auth'));
 app.use('/api/channels', require('./src/routes/channels'));
 app.use('/api/admin', require('./src/routes/admin'));
-app.use('/api/streams', require('./src/routes/streams'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -44,6 +40,13 @@ app.get('/api/health', (req, res) => {
     message: 'Server is running',
     timestamp: new Date().toISOString()
   });
+});
+
+// Serve React app for all non-API routes (SPA support)
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(publicPath, 'index.html'));
+  }
 });
 
 // Error handling middleware
@@ -56,20 +59,12 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found'
-  });
-});
-
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`API URL: http://localhost:${PORT}/api`);
-  console.log(`Stream API: http://localhost:${PORT}/api/streams`);
+  console.log(`Frontend: http://localhost:${PORT}`);
 });
 
 module.exports = app;

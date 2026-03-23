@@ -189,4 +189,3 @@ The app will be available at:
 ## License
 
 MIT
-# streamflix
