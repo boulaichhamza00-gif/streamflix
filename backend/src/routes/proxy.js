@@ -26,7 +26,7 @@ router.get('/stream', async (req, res) => {
     const decodedUrl = decodeURIComponent(url);
     const isM3U8 = decodedUrl.includes('.m3u8');
     const baseUrl = getBaseUrl(decodedUrl);
-    const proxyBase = `${req.protocol}://${req.get('host')}/api/proxy/stream?url=`;
+    const proxyBase = `/api/proxy/stream?url=`;
 
     const response = await axios({
       method: 'get',
