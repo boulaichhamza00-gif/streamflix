@@ -37,7 +37,7 @@ mongoose.connect(MONGODB_URI)
 app.use('/api/auth', require('./src/routes/auth'));
 app.use('/api/channels', require('./src/routes/channels'));
 app.use('/api/admin', require('./src/routes/admin'));
-
+app.use('/api/proxy', require('./src/routes/proxy'));
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'Server is running' });
