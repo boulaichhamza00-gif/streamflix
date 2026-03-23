@@ -2,7 +2,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-const { cleanupOldStreams } = require('./src/utils/streamManager');
 require('dotenv').config();
 
 const app = express();
@@ -14,12 +13,6 @@ app.use(express.urlencoded({ extended: true }));
 
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Static files for transcoded streams
-app.use('/streams', express.static(path.join(__dirname, 'streams')));
-
-// Cleanup old streams on startup
-cleanupOldStreams();
 
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/streamflix';
@@ -35,7 +28,6 @@ mongoose.connect(MONGODB_URI)
 app.use('/api/auth', require('./src/routes/auth'));
 app.use('/api/channels', require('./src/routes/channels'));
 app.use('/api/admin', require('./src/routes/admin'));
-app.use('/api/streams', require('./src/routes/streams'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -69,7 +61,6 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`API URL: http://localhost:${PORT}/api`);
-  console.log(`Stream API: http://localhost:${PORT}/api/streams`);
 });
 
 module.exports = app;
