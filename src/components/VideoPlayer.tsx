@@ -28,7 +28,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ channel, onClose }) => {
     const video = videoRef.current;
     if (!video) return;
 
-    const getProxiedUrl = (url) => {
+    const getProxiedUrl = (url: string): string => {
   if (url.startsWith('https')) return url;
   return `https://corsproxy.io/?${encodeURIComponent(url)}`;
 };
