@@ -2,31 +2,19 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
-// Helper to get base URL
-const getBaseUrl = (url) => {
-  const lastSlash = url.lastIndexOf('/');
-  return lastSlash > 0 ? url.substring(0, lastSlash + 1) : url;
-};
-
-// Helper to make absolute URL
-const makeAbsolute = (base, path) => {
-  if (path.startsWith('http')) return path;
-  if (path.startsWith('/')) {
-    const urlObj = new URL(base);
-    return `${urlObj.protocol}//${urlObj.host}${path}`;
-  }
-  return base + path;
-};
-
 router.get('/stream', async (req, res) => {
   const { url } = req.query;
   if (!url) return res.status(400).json({ error: 'URL required' });
 
   try {
     const decodedUrl = decodeURIComponent(url);
-    const isM3U8 = decodedUrl.includes('.m3u8');
-    const baseUrl = getBaseUrl(decodedUrl);
-    const proxyBase = `/api/proxy/stream?url=`;
+    
+    // Get base URL
+    const lastSlash = decodedUrl.lastIndexOf('/');
+    const baseUrl = lastSlash > 0 ? decodedUrl.substring(0, lastSlash + 1) : decodedUrl;
+    
+    // Use RELATIVE URL for proxy (fixes mixed content)
+    const proxyBase = '/api/proxy/stream?url=';
 
     const response = await axios({
       method: 'get',
@@ -42,16 +30,27 @@ router.get('/stream', async (req, res) => {
 
     let data = response.data;
 
-    // Rewrite all URLs in M3U8 to use proxy
-    if (isM3U8 || data.includes('#EXTM3U')) {
-      // Split into lines and process each
+    // Rewrite ALL URLs in the playlist to use RELATIVE proxy
+    if (data.includes('#EXTM3U')) {
       const lines = data.split('\n');
       const rewritten = lines.map(line => {
-        // Skip comments and empty lines
-        if (!line.trim() || line.startsWith('#')) return line;
+        line = line.trim();
         
-        // This is a URL line - rewrite it
-        const absoluteUrl = makeAbsolute(baseUrl, line.trim());
+        // Skip comments and empty lines
+        if (!line || line.startsWith('#')) return line;
+        
+        // Make absolute URL if relative
+        let absoluteUrl;
+        if (line.startsWith('http')) {
+          absoluteUrl = line;
+        } else if (line.startsWith('/')) {
+          const urlObj = new URL(baseUrl);
+          absoluteUrl = `${urlObj.protocol}//${urlObj.host}${line}`;
+        } else {
+          absoluteUrl = baseUrl + line;
+        }
+        
+        // Return RELATIVE proxied URL (no http/https)
         return proxyBase + encodeURIComponent(absoluteUrl);
       });
       

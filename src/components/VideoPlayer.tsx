@@ -28,9 +28,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ channel, onClose }) => {
     const video = videoRef.current;
     if (!video) return;
 
-    const streamUrl = channel.streamUrl.startsWith('http') 
-  ? `${window.location.origin}/api/proxy/stream?url=${encodeURIComponent(channel.streamUrl)}`
-  : channel.streamUrl;
+    const streamUrl = `/api/proxy/stream?url=${encodeURIComponent(channel.streamUrl)}`;
     
     // Check if stream URL is HLS
     const isHLS = streamUrl.includes('.m3u8') || streamUrl.includes('hls');
